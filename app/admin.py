@@ -10,7 +10,7 @@ class ModelWithImagesArrayAdmin(admin.ModelAdmin):
     readonly_fields = ['uploaded_images']
 
     def uploaded_images(self, instance):
-        return '\n'.join(instance.images) or '-'
+        return '\n'.join(map(str, instance.images or [])) or '-'
 
     uploaded_images.short_description = 'Загруженные изображения'
 
@@ -21,6 +21,6 @@ class ModelWithFilesArrayAdmin(admin.ModelAdmin):
     readonly_fields = ['uploaded_files']
 
     def uploaded_files(self, instance):
-        return '\n'.join(instance.files) or '-'
+        return '\n'.join(map(str, instance.files or [])) or '-'
 
     uploaded_files.short_description = 'Загруженные файлы'

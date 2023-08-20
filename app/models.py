@@ -9,7 +9,8 @@ from app.utils import upload_files_path
 class ModelWithImagesArray(models.Model):
     images = ArrayField(
         models.ImageField(upload_to=upload_files_path),
-        null=True, blank=True, default=list
+        null=True, blank=True, default=list,
+        verbose_name='Изображения'
     )
 
     class Meta:
@@ -20,7 +21,8 @@ class ModelWithImagesArray(models.Model):
 class ModelWithFilesArray(models.Model):
     files = ArrayField(
         models.FileField(upload_to=upload_files_path),
-        null=True, blank=True, default=list
+        null=True, blank=True, default=list,
+        verbose_name='Файлы'
     )
 
     class Meta:

@@ -3,6 +3,7 @@ import sys
 
 import requests
 from PIL import Image
+from django import forms
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.forms import (CheckboxInput, ClearableFileInput, FileField,
@@ -14,19 +15,23 @@ FILE_INPUT_CONTRADICTION = object()
 class ClearableMultipleFilesInput(ClearableFileInput):
     """Виджет для поля загрузки нескольких файлов."""
     def value_from_datadict(self, data, files, name):
-        if files:
-            upload = files.getlist(name)
-            if not self.is_required and CheckboxInput().value_from_datadict(
-                data, files, self.clear_checkbox_name(name)
-            ):
-                if upload:
-                    return FILE_INPUT_CONTRADICTION
-                return False
-            return upload
-        return False
+        upload = files.getlist(name)
+        if not self.is_required and CheckboxInput().value_from_datadict(
+            data, files, self.clear_checkbox_name(name)
+        ):
+            if upload:
+                return FILE_INPUT_CONTRADICTION
+            return False
+        return upload
 
 
-class FilesArrayField(FileField):
+class URLTextarea(Textarea):
+
+    def format_value(self, value):
+        return
+
+
+class FilesArrayFilesInputField(FileField):
     """Поле формы для загрузки нескольких файлов в админке."""
     widget = ClearableMultipleFilesInput(attrs={'multiple': True})
 
@@ -76,12 +81,12 @@ class FilesArrayField(FileField):
         return self.to_python(data)
 
 
-class ImagesArrayField(FilesArrayField, ImageField):
+class ImagesArrayFilesInputField(FilesArrayFilesInputField, ImageField):
     """Поле формы для загрузки нескольких изображений в админке."""
     def to_python(self, data):
         if data in self.empty_values:
             return
-        data = super(ImagesArrayField, self).to_python(data)
+        data = super(ImagesArrayFilesInputField, self).to_python(data)
         for file_upload in data:
             if hasattr(data, 'temporary_file_path'):
                 file = file_upload.temporary_file_path()
@@ -105,7 +110,7 @@ class ImagesArrayField(FilesArrayField, ImageField):
         return data
 
 
-class FilesArrayURLField(FilesArrayField):
+class FilesArrayURLField(FilesArrayFilesInputField):
     """Поле формы для загрузки нескольких файлов по ссылкам в админке."""
     widget = Textarea(attrs={'cols': '100'})
 
@@ -143,7 +148,6 @@ class FilesArrayURLField(FilesArrayField):
 
 class ImagesArrayURLField(FilesArrayURLField):
     """Поле формы для загрузки нескольких изображений по ссылкам в админке."""
-
     def to_python(self, data):
         if data in self.empty_values:
             return
@@ -185,3 +189,33 @@ class ImagesArrayURLField(FilesArrayURLField):
             if hasattr(file_upload, 'seek') and callable(file_upload.seek):
                 file_upload.seek(0)
         return files_data
+
+
+class FilesArrayField(forms.Field):
+    FILES_INPUT_FIELD = FilesArrayFilesInputField
+    URL_INPUT_FIELD = FilesArrayURLField
+
+    def __init__(self, use_url=False, *args, **kwargs):
+        self.use_url = use_url
+        if self.use_url:
+            field_class = self.URL_INPUT_FIELD
+            self.widget = URLTextarea(attrs={'cols': '100'})
+        else:
+            field_class = self.FILES_INPUT_FIELD
+            self.widget = ClearableMultipleFilesInput(attrs={'multiple': True})
+        self.field = field_class(*args, **kwargs)
+        super(FilesArrayField, self).__init__(*args, **kwargs)
+
+    def to_python(self, value):
+        return self.field.to_python(value)
+
+
+class ImagesArrayField(FilesArrayField):
+    FILES_INPUT_FIELD = ImagesArrayFilesInputField
+    URL_INPUT_FIELD = ImagesArrayURLField
+
+    def widget_attrs(self, widget):
+        attrs = super().widget_attrs(widget)
+        if isinstance(widget, ClearableFileInput):
+            attrs.setdefault('accept', 'image/*')
+        return attrs
