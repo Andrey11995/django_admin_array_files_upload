@@ -13,6 +13,7 @@
 Есть возможность добавить аттрибут use_url=True, тем самым изменить виджет на большое текстовое поле
 для ввода абсолютных url файлов и изображений, если нам требуется загрузить контент со стороннего ресурса.
 При этом важно вводить каждый url с новой строки без запятых и пробелов, так как разделитель указан \n.
+Также важно, чтобы в конце ссылки было допустимое в Django расширение (.png, .jpg и т.д.).
 
 Для того чтобы видеть в админке загруженные файлы, можно добавить в класс ModelAdmin метод вывода
 относительных URL в виде строки и сделать полученное поле доступным только для чтения.
@@ -21,9 +22,15 @@
 Виджет ClearableMultipleFilesInput позволяет добавлять в поле сразу несколько файлов.
 Для этого нужно выбирать файлы с зажатым Ctrl.
 
+## Загрузка с устройства:
 ![Image](https://github.com/Andrey11995/django_admin_array_files_upload/raw/main/github_static/add_1.JPG)
 ![Image](https://github.com/Andrey11995/django_admin_array_files_upload/raw/main/github_static/add_2.JPG)
 ![Image](https://github.com/Andrey11995/django_admin_array_files_upload/raw/main/github_static/added.JPG)
+
+## Загрузка через URL:
+![Image](https://github.com/Andrey11995/django_admin_array_files_upload/raw/main/github_static/add_url_1.JPG)
+![Image](https://github.com/Andrey11995/django_admin_array_files_upload/raw/main/github_static/add_url_2.JPG)
+![Image](https://github.com/Andrey11995/django_admin_array_files_upload/raw/main/github_static/added_url.JPG)
 
 Во избежание замусоривания хранилища при обновлении массива все старые файлы удаляются
 посредством задачи Celery.
