@@ -20,6 +20,25 @@ services:
     depends_on:
       - db
 
+  celery:
+    image: app_image
+    container_name: app_celery
+    command: celery -A django_admin_array_files_upload worker -l INFO
+    restart: always
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - app
+      - redis
+
+  redis:
+    image: redis:7.0.1-alpine
+    container_name: app_redis
+    restart: always
+
   db:
     image: postgres:15.2-alpine
     container_name: app_db
